@@ -1,10 +1,10 @@
-{-----------------------------------------------------------------------------
+Ôªø{-----------------------------------------------------------------------------
 
-                           «¡∑Œ¡ß∆Æ: DisableKyber
+                     ÌîÑÎ°úÏ†ùÌä∏: Kyber Encryption Disable Tool
 
-»˜Ω∫≈‰∏Æ:
-  1.0.0.0
-  [+] «¡∑Œ¡ß∆Æ Ω√¿€
+ÌûàÏä§ÌÜ†Î¶¨:
+  0.9.0.0
+  [+] ÌîÑÎ°úÏ†ùÌä∏ ÏãúÏûë
 
 -----------------------------------------------------------------------------}
 
@@ -15,6 +15,10 @@ program DisableKyber;
 {$R *.res}
 
 uses
+  madExcept,
+  madLinkDisAsm,
+  madListProcesses,
+  madListModules,
   System.SysUtils, System.IOUtils, System.JSON, System.Generics.Collections, System.StrUtils;
 
 function IsKyber(const FileName: string): Integer;
@@ -94,12 +98,26 @@ begin
   end;
 end;
 
+const
+  Options: array[0..1] of string = ('/enable', '/disable');
 var
   FileList: TList<string>;
   ProcList: TList<string>;
-  FileName, ProcName, State: string;
+  FileName, ProcName, State, Input: string;
+  Auto: Boolean;
   I: Integer;
 begin
+  Auto := False;
+  if ParamCount = 1 then
+  begin
+    for I := 0 to 1 do
+      if ParamStr(1) = Options[I] then
+      begin
+        Auto := True;
+        Input := IntToStr(I+2);
+      end;
+  end;
+
   FileList := TList<string>.Create;
   ProcList := TList<string>.Create;
 
@@ -115,21 +133,70 @@ begin
   FileList.Add(IncludeTrailingPathDelimiter(GetEnvironmentVariable('LOCALAPPDATA')) + 'Naver\Naver Whale\User Data\Local State');
   ProcList.Add('whale.exe');
 
-  for I := 0 to FileList.Count-1 do
-  begin
-    FileName := FileList[I];
-    ProcName := ProcList[I];
+  repeat
+    WriteLn;
+    Writeln('======================================================');
+    Writeln('           Kyber Encryption Disable Tool v 0.9.0      ');
+    Writeln('======================================================');
 
-    if not FileExists(FileName) then Continue;
-
-    SetKyber(FileName, False).ToString;
-
-    case IsKyber(FileName) of
-      0: State := 'Default';
-      1: State := 'Enabled';
-      2: State := 'Disabled';
+    if not Auto then
+    begin
+      Writeln(' This tool disables Kyber encryption for supported');
+      Writeln;
+      Writeln(' You can also run this tool with parameters:');
+      Writeln(' /disable - Disable Kyber encryption automatically.');
+      Writeln(' /enable  - Enable Kyber encryption automatically.');
+      Writeln;
+      Writeln(' [1] Check Kyber Status');
+      Writeln(' [2] Enabled Kyber');
+      Writeln(' [3] Disable Kyber');
+      Writeln(' [4] Exit');
+      Writeln('==================================================');
+      Write(' Please enter your choice (1, 2, 3, 4): ');
+      Readln(Input);
     end;
 
-    WriteLn('[' + ProcName +'] TLS 1.3 hybridized Kyber support: ' + State);
-  end;
+    WriteLn;
+
+    case StrToIntDef(Input, -1) of
+      1: // Ï≤¥ÌÅ¨
+        begin
+          for I := 0 to FileList.Count-1 do
+          begin
+            FileName := FileList[I];
+            ProcName := ProcList[I];
+
+            if not FileExists(FileName) then Continue;
+
+            case IsKyber(FileName) of
+              0: State := 'Default';
+              1: State := 'Enabled';
+              2: State := 'Disabled';
+            end;
+
+            WriteLn('[' + ProcName +'] TLS 1.3 hybridized Kyber support: ' + State);
+          end;
+        end;
+      2: // ÌôúÏÑ±
+        begin
+          for I := 0 to FileList.Count-1 do
+          begin
+            FileName := FileList[I];
+            SetKyber(FileName, True);
+          end;
+
+          Writeln('Kyber encryption has been enabled.');
+        end;
+      3: // ÎπÑÌôúÏÑ±
+        begin
+          for I := 0 to FileList.Count-1 do
+          begin
+            FileName := FileList[I];
+            SetKyber(FileName, False);
+          end;
+
+          Writeln('Kyber encryption has been disabled.');
+        end;
+    end;
+  until (Input = '4') or Auto;
 end.
