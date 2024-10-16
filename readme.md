@@ -1,5 +1,3 @@
-Got it! Here’s the updated version:
-
 ### Key Features
 - **Disable TLS 1.3 Hybrid Kyber Support**: Disables TLS 1.3 Hybrid Kyber encryption support in Google Chrome, Microsoft Edge, and Naver Whale browsers.
 - **Check Browser Support Status**: Checks the current status of TLS 1.3 Hybrid Kyber support for each browser and prints the result to the console.
